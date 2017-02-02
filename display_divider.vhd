@@ -7,11 +7,13 @@ library ieee;
 
 entity display_divider is
 port(
+start : in std_logic;
 a : in std_logic_vector (DIVIDEND_WIDTH-1 downto 0);
 b : in std_logic_vector (DIVISOR_WIDTH-1 downto 0);
 LED : out std_logic_vector (((DIVIDEND_WIDTH/4)*7)-1 downto 0);
-remainder : out std_logic_vector(DIVISOR_WIDTH-1 downto 0);
+remainder_LED : out std_logic_vector (6 downto 0);
 overflow : out std_logic);
+
 end entity;
 
 
@@ -33,15 +35,18 @@ architecture struct of display_divider is
   end component;
 
 signal d_led,d_led1 : std_logic_vector (DIVIDEND_WIDTH-1 downto 0);
+signal remainder_t : std_logic_vector (DIVISOR_WIDTH-1 downto 0);
 
 begin
 
-divide: divider port map ('1', a,b, d_led, remainder, overflow);
+divide: divider port map (start, a,b, d_led, remainder_t, overflow);
 d_led1 <= d_led;
 
 G0: for i in 0 to (DIVIDEND_WIDTH/4)-1 generate begin
   L1: leddcd port map(d_led1(((i*4)+3) downto i*4), LED(6+i*7 downto i*7), '0', '1');
 end generate;
+
+L2: leddcd port map(remainder_t, remainder_LED, '0', '1');
 
 
 

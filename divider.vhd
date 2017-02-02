@@ -36,10 +36,10 @@ architecture structural_combinational of divider is
 			a: in std_logic_vector(DATA_WIDTH -1 downto 0);
 			b: out std_logic_vector(DATA_WIDTH downto 0));
 	end component;
-	
+
 	type pre_shifted_array is array(0 to DIVIDEND_WIDTH - 1) of std_logic_vector (DATA_WIDTH - 1 downto 0);
 	type shifted_array is array(0 to DIVIDEND_WIDTH - 1) of std_logic_vector (DATA_WIDTH downto 0);
-	
+
 	signal pre_shifted_a : pre_shifted_array;
 	signal shifted_a : shifted_array;
 	signal shifted_a_final : shifted_array;
@@ -52,7 +52,7 @@ begin
 	pre_shifted_a(0) <= std_logic_vector(resize(unsigned(dividend_msb), DATA_WIDTH));
 	shifted_a(0) <= std_logic_vector(resize(unsigned(dividend_msb), DATA_WIDTH + 1));
 	comparator_0 : comparator port map (shifted_a(0), divisor, pre_shifted_a(1), temp_quotient(DIVIDEND_WIDTH - 1));
-		
+
 	MAIN_LOOP : for i in 1 to DIVIDEND_WIDTH - 2 generate
 	begin
 		shifter_N : shiftl_4_5 port map (pre_shifted_a(i), shifted_a(i));

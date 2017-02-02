@@ -20,7 +20,6 @@ end entity divider;
 
 
 architecture structural_combinational of divider is
-
 	component comparator is
 	port(
 	--Inputs
@@ -32,51 +31,35 @@ architecture structural_combinational of divider is
 	);
 	end component comparator;
 
-
-type signal_array is array(0 to DIVIDEND_WIDTH-2) of std_logic_vector(DATA_WIDTH-1 downto 0);
-signal temp : signal_array;
-type signal_array1 is array(0 to DIVIDEND_WIDTH-2) of std_logic_vector(DATA_WIDTH downto 0);
-signal quotient_temp1 : signal_array1;
-signal dividend_t : std_logic_vector (DATA_WIDTH downto 0);
-signal quotient_temp : std_logic_vector (DIVIDEND_WIDTH-1 downto 0);
-constant max : integer := 255;
--- signal quotient_temp1 : std_logic_vector (DIVIDEND_WIDTH-1 downto DIVIDEND_WIDTH/2-1);
-signal remainder_temp : std_logic_vector (DIVISOR_WIDTH-1 downto 0);
-
+	component shiftl_4_5 is
+		port(
+			a: in std_logic_vector(DATA_WIDTH -1 downto 0);
+			b: out std_logic_vector(DATA_WIDTH downto 0));
+	end component;
+	
+	type pre_shifted_array is array(0 to DIVIDEND_WIDTH - 1) of std_logic_vector (DATA_WIDTH - 1 downto 0);
+	type shifted_array is array(0 to DIVIDEND_WIDTH - 1) of std_logic_vector (DATA_WIDTH downto 0);
+	
+	signal pre_shifted_a : pre_shifted_array;
+	signal shifted_a : shifted_array;
+	signal dividend_msb : std_logic_vector(1 downto 0);
 begin
-temp(0) <= "0000";
-G0: for i in 0 to DIVIDEND_WIDTH-1	generate begin
+	dividend_msb(0) <= dividend(DIVIDEND_WIDTH - 1);
+	dividend_msb(1) <= '0';
+	pre_shifted_a(0) <= std_logic_vector(resize(unsigned(dividend_msb), DATA_WIDTH));
+	shifted_a(0) <= std_logic_vector(resize(unsigned(dividend_msb), DATA_WIDTH + 1));
+	comparator_0 : comparator port map (shifted_a(0), divisor, pre_shifted_a(1), quotient(DIVIDEND_WIDTH - 1));
 
-	I5: if i /= DIVIDEND_WIDTH-1 generate begin
-
-			J0: for j in 1 to DIVISOR_WIDTH generate begin
-				quotient_temp1(i)(j) <= temp(i)(j-1);
-			end generate;
-
-			quotient_temp1(i)(0) <= dividend(DIVIDEND_WIDTH-1-i);
-		C3: comparator port map(quotient_temp1(i),
-			divisor(DIVISOR_WIDTH-1 downto 0), temp(i) ,quotient_temp(DIVIDEND_WIDTH-1-i));
+	MAIN_LOOP : for i in 1 to DIVIDEND_WIDTH - 2 generate
+	begin
+		shifter_N : shiftl_4_5 port map (pre_shifted_a(i), shifted_a(i));
+		shifted_a(i)(0) <= '1';
+		comparator_N : comparator port map (shifted_a(i), divisor, pre_shifted_a(i+1), quotient(DIVIDEND_WIDTH - 1 - i));
 	end generate;
 
-	I3: if i = DIVIDEND_WIDTH-1 generate begin
+	shifter_last : shiftl_4_5 port map (pre_shifted_a(DIVIDEND_WIDTH - 1), shifted_a(DIVIDEND_WIDTH - 1));
+	shifted_a(DIVIDEND_WIDTH - 1)(0) <= dividend(0);
+	comparator_last : comparator port map (shifted_a(DIVIDEND_WIDTH - 1), divisor, remainder, quotient(0));
 
-		J1: for j in 1 to DIVISOR_WIDTH generate begin
-			quotient_temp1(i-1)(j) <= temp(i-1)(j-1);
-		end generate;
-
-		C2: comparator port map(quotient_temp1(i-1),
-		divisor(DIVISOR_WIDTH-1 downto 0),
-		remainder_temp, quotient_temp(DIVIDEND_WIDTH-1-i));
-	end generate;
-
-
-end generate;
-
-
-overflow <= '1' when to_integer(unsigned(dividend))/max > max else '0';
-quotient <= quotient_temp when to_integer(unsigned(divisor)) /= 0
-else (std_logic_vector(resize(unsigned(divisor),DIVIDEND_WIDTH)));
-
-remainder <= remainder_temp when to_integer(unsigned(divisor)) /= 0
-	else (std_logic_vector(resize(unsigned(divisor),DIVISOR_WIDTH)));
+	overflow <= '0';
 end architecture structural_combinational;

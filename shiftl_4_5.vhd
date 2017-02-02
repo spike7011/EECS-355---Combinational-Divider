@@ -19,7 +19,7 @@ begin
 
 b_temp <= to_integer(unsigned(a))*2;
 
-b <= std_logic_vector(to_unsigned(b_temp,5));
+b <= std_logic_vector(to_unsigned(b_temp,DATA_WIDTH+1));
 
 
 end architecture;

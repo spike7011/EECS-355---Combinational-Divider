@@ -42,6 +42,7 @@ architecture structural_combinational of divider is
 	
 	signal pre_shifted_a : pre_shifted_array;
 	signal shifted_a : shifted_array;
+	signal shifted_a_final : shifted_array;
 	signal dividend_msb : std_logic_vector(1 downto 0);
 begin
 	dividend_msb(0) <= dividend(DIVIDEND_WIDTH - 1);
@@ -53,13 +54,15 @@ begin
 	MAIN_LOOP : for i in 1 to DIVIDEND_WIDTH - 2 generate
 	begin
 		shifter_N : shiftl_4_5 port map (pre_shifted_a(i), shifted_a(i));
-		shifted_a(i)(0) <= '1';
-		comparator_N : comparator port map (shifted_a(i), divisor, pre_shifted_a(i+1), quotient(DIVIDEND_WIDTH - 1 - i));
+		shifted_a_final(i)(DATA_WIDTH downto 1) <= shifted_a(i)(DATA_WIDTH downto 1);
+		shifted_a_final(i)(0) <= dividend(DIVIDEND_WIDTH - 1 - i);
+		comparator_N : comparator port map (shifted_a_final(i), divisor, pre_shifted_a(i+1), quotient(DIVIDEND_WIDTH - 1 - i));
 	end generate;
 
 	shifter_last : shiftl_4_5 port map (pre_shifted_a(DIVIDEND_WIDTH - 1), shifted_a(DIVIDEND_WIDTH - 1));
-	shifted_a(DIVIDEND_WIDTH - 1)(0) <= dividend(0);
-	comparator_last : comparator port map (shifted_a(DIVIDEND_WIDTH - 1), divisor, remainder, quotient(0));
+	shifted_a_final(DIVIDEND_WIDTH - 1)(DATA_WIDTH downto 1) <= shifted_a(DIVIDEND_WIDTH - 1)(DATA_WIDTH downto 1);
+	shifted_a_final(DIVIDEND_WIDTH - 1)(0) <= dividend(0);
+	comparator_last : comparator port map (shifted_a_final(DIVIDEND_WIDTH - 1), divisor, remainder, quotient(0));
 
 	overflow <= '0';
 end architecture structural_combinational;

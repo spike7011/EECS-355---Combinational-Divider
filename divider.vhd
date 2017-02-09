@@ -6,7 +6,7 @@ use ieee.numeric_std.all;
 entity divider is
 port(
 --Inputs
--- clk : in std_logic;
+clk : in std_logic;
 --COMMENT OUT clk signal for Part A.
 start : in std_logic;
 dividend : in std_logic_vector (DIVIDEND_WIDTH - 1 downto 0);
@@ -81,3 +81,63 @@ begin
 		end if;
 	end process;
 end architecture structural_combinational;
+
+architecture behavioral_sequential of divider is
+    component comparator is
+	port(
+	--Inputs
+	DINL : in std_logic_vector (DATA_WIDTH downto 0);
+	DINR : in std_logic_vector (DATA_WIDTH - 1 downto 0);
+	--Outputs
+	DOUT : out std_logic_vector (DATA_WIDTH - 1 downto 0);
+	isGreaterEq : out std_logic
+	);
+    end component comparator;
+
+    component shiftl_4_5 is
+	port(
+	    a: in std_logic_vector(DATA_WIDTH -1 downto 0);
+    	    b: out std_logic_vector(DATA_WIDTH downto 0)
+        );
+    end component;
+	
+    signal pre_shifted_a : std_logic_vector (DATA_WIDTH - 1 downto 0);
+    signal shifted_a : std_logic_vector (DATA_WIDTH downto 0);
+    signal shifted_a_final : std_logic_vector (DATA_WIDTH downto 0);
+    signal dividend_msb : std_logic_vector(1 downto 0);
+    signal temp_quotient_bit : std_logic;
+    signal temp_quotient : std_logic_vector(DIVIDEND_WIDTH - 1 downto 0);
+    signal temp_remainder : std_logic_vector(DIVISOR_WIDTH - 1 downto 0);
+begin
+    comparator_module : comparator port map (shifted_a_final, divisor, pre_shifted_a, temp_quotient_bit);
+    shifter_module : shiftl_4_5 port map (pre_shifted_a, shifted_a);
+
+    EXECUTE_STAGE: process(clk, start)
+    begin
+        if rising_edge(start) then
+	    MAIN_LOOP : for i in 0 to DIVIDEND_WIDTH - 1 loop
+		if rising_edge(clk) then
+                    if i = 0 then
+                        dividend_msb(0) <= dividend(DIVIDEND_WIDTH - 1);
+			dividend_msb(1) <= '0';
+			shifted_a_final <= std_logic_vector(resize(unsigned(dividend_msb), DATA_WIDTH + 1));
+			temp_quotient(DIVIDEND_WIDTH - 1) <= temp_quotient_bit;	
+                    else
+			shifted_a_final(DATA_WIDTH downto 1) <= shifted_a(DATA_WIDTH downto 1);
+			shifted_a_final(0) <= dividend(DIVIDEND_WIDTH - 1 - i);
+			temp_quotient(DIVIDEND_WIDTH - 1 - i) <= temp_quotient_bit;	
+		    end if;
+		end if;
+            end loop MAIN_LOOP;
+	    if to_integer(unsigned(divisor)) /= 0 then
+		overflow <= '0';
+		remainder <= temp_remainder;
+		quotient <= temp_quotient;
+	    else
+		overflow <= '1';
+		remainder <= std_logic_vector(to_unsigned(0, DIVISOR_WIDTH));
+		quotient <= std_logic_vector(to_unsigned(0, DIVIDEND_WIDTH));
+	    end if;
+	end if;
+    end process EXECUTE_STAGE;
+end architecture behavioral_sequential;

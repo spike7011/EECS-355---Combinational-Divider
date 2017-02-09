@@ -13,7 +13,7 @@ architecture behav of divider_tb is
 	component divider is
 	port(
 	--Inputs
-	-- clk : in std_logic;
+	clk : in std_logic;
 	--COMMENT OUT clk signal for Part A.
 	start : in std_logic;
 	dividend : in std_logic_vector (DIVIDEND_WIDTH - 1 downto 0);
@@ -25,6 +25,8 @@ architecture behav of divider_tb is
 	);
 end component;
 
+for all : divider use entity WORK.divider(behavioral_sequential);
+signal clk_tb : std_logic;
 signal start_tb : std_logic;
 signal dividend_tb : std_logic_vector(DIVIDEND_WIDTH -1 downto 0);
 signal divisor_tb : std_logic_vector(DIVISOR_WIDTH -1 downto 0);
@@ -33,33 +35,47 @@ signal remainder_tb : std_logic_vector(DIVISOR_WIDTH -1 downto 0);
 signal overflow_tb : std_logic;
 begin
 
- dut : divider port map(start_tb, dividend_tb, divisor_tb, quotient_tb, remainder_tb, overflow_tb);
-  testbench : process begin
+ dut : divider port map(clk_tb, start_tb, dividend_tb, divisor_tb, quotient_tb, remainder_tb, overflow_tb);
 
+
+  testbench : process begin
+	start_tb <= '0';
+	wait for 2 ns;
+	start_tb <= '1';
+	wait for 2 ns;
 	dividend_tb <= X"03";
 	divisor_tb <= X"1";
-
+	clk_tb <= '0';
+	wait for 2 ns;
+	clk_tb <= '1';
 	 wait for 2 ns;
 
 	 dividend_tb <= X"04";
 	 divisor_tb <= X"1";
-
+	clk_tb <= '0';
+	wait for 2 ns;
+	clk_tb <= '1';
 		wait for 2 ns;
 
 		dividend_tb <= X"0f";
 		divisor_tb <= X"1";
-
+	clk_tb <= '0';
+	wait for 2 ns;
+	clk_tb <= '1';
 		 wait for 2 ns;
 
 		 dividend_tb <= X"0f";
  		divisor_tb <= X"2";
-
+	clk_tb <= '0';
+	wait for 2 ns;
+	clk_tb <= '1';
  		 wait for 2 ns;
 
 		 dividend_tb <= X"01";
 		divisor_tb <= X"1";
-
-		 wait for 2 ns;
+	clk_tb <= '0';
+	wait for 2 ns;
+	clk_tb <= '1';
 
 	 wait;
 

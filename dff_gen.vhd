@@ -2,15 +2,14 @@
 library ieee;
  use ieee.std_logic_1164.all;
  use ieee.numeric_std.all;
- use WORK.calc_const.all;
 
 
 entity dff_gen is
-	GENERIC (DIVIDEND_WIDTH : integer);
+	GENERIC (DATA_WIDTH : integer);
  port(
  clk : in std_logic;
- d : in std_logic_vector(DIVIDEND_WIDTH-1 downto 0);
- q: out std_logic_vector(DIVIDEND_WIDTH-1 downto 0));
+ d : in std_logic_vector(DATA_WIDTH-1 downto 0);
+ q: out std_logic_vector(DATA_WIDTH-1 downto 0));
 end entity;
 
 

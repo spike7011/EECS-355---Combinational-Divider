@@ -103,11 +103,11 @@ architecture behavioral_sequential of divider is
 
 
     component dff_gen is
-	GENERIC (DIVIDEND_WIDTH : integer);
+	GENERIC (DATA_WIDTH : integer);
  	port(
  		clk : in std_logic;
- 		d : in std_logic_vector(DIVIDEND_WIDTH-1 downto 0);
- 		q: out std_logic_vector(DIVIDEND_WIDTH-1 downto 0));
+ 		d : in std_logic_vector(DATA_WIDTH-1 downto 0);
+ 		q: out std_logic_vector(DATA_WIDTH-1 downto 0));
     end component;
 	
     signal pre_shifted_a : std_logic_vector (DATA_WIDTH - 1 downto 0);
@@ -123,7 +123,7 @@ begin
     comparator_module : comparator port map (shifted_a_final_q, divisor, pre_shifted_a, temp_quotient_bit);
     shifter_module : shiftl_4_5 port map (pre_shifted_a, shifted_a);
     dff_module : dff_gen 
-	generic map (DIVIDEND_WIDTH)
+	generic map (DATA_WIDTH + 1)
 	port map (clk, shifted_a_final_d, shifted_a_final_q);
 
     EXECUTE_STAGE: process(clk, start)
